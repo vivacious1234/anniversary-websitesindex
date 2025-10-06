@@ -1,0 +1,269 @@
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Element Selections ---
+        const navContainer = document.getElementById('rose-nav-container');
+        const roseBud = document.getElementById('rose-bud');
+        const nameOverlay = document.getElementById('name-animation-overlay');
+        const petalContainer = document.getElementById('rose-petal-bg-container');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const pages = document.querySelectorAll('.page');
+        const audioPlayer = document.getElementById('persistent-audio-player');
+
+        // --- Global Timers for Animations ---
+        // Placing these in the global scope of the script to easily clear them
+        let lyricTimeouts = [];
+        let noteInterval = null;
+
+        // --- Navigation & Core Logic ---
+        roseBud.addEventListener('click', () => {
+            const isOpening = !navContainer.classList.contains('is-open');
+            navContainer.classList.toggle('is-open');
+            // Only trigger the big animations on the first-time open click
+            if (isOpening && !roseBud.dataset.hasBeenOpened) {
+                triggerRoseShower();
+                playNameAnimation();
+                roseBud.dataset.hasBeenOpened = 'true';
+            }
+        });
+        
+        // Add ARIA labels for accessibility from data-title
+        navLinks.forEach(link => {
+            link.setAttribute('aria-label', link.dataset.title);
+        });
+
+        function triggerRoseShower() {
+            const flowers = ['🌹', '🌸', '🌷', '🌻', '🌺', '🌼', '💮', '💐'];
+            const container = document.body;
+            for (let i = 0; i < 70; i++) {
+                const petal = document.createElement('div');
+                petal.classList.add('click-shower-petal');
+                petal.innerHTML = flowers[Math.floor(Math.random() * flowers.length)];
+                petal.style.left = `${Math.random() * 100}vw`;
+                petal.style.top = `${-10 - (Math.random() * 20)}vh`;
+                petal.style.fontSize = `${Math.random() * 1 + 0.75}rem`;
+                petal.style.transform = `rotate(${Math.random() * 360}deg)`;
+                petal.style.animation = `full-screen-fall ${Math.random() * 5 + 4}s linear ${Math.random() * 1.5}s forwards`;
+                container.appendChild(petal);
+                setTimeout(() => petal.remove(), 10000);
+            }
+        }
+        
+        function playNameAnimation() {
+            nameOverlay.classList.add('is-playing');
+            setTimeout(() => nameOverlay.classList.remove('is-playing'), 3000);
+        }
+        
+        function stopAllSongAnimations() {
+            // Clear the interval for music notes
+            if (noteInterval) {
+                clearInterval(noteInterval);
+                noteInterval = null;
+            }
+            // Clear all pending lyric timeouts
+            lyricTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+            lyricTimeouts = []; // Reset the array
+            
+            // Also reset the button state
+            const playBtn = document.getElementById('play-btn');
+            playBtn.dataset.animating = 'false';
+        }
+
+        function showPage(pageId) {
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if(link.getAttribute('href') === `#${pageId}`) {
+                    link.classList.add('active');
+                }
+            });
+            pages.forEach(page => {
+                page.classList.remove('active');
+                if (page.id === `page-${pageId}`) {
+                    page.classList.add('active');
+                }
+            });
+            window.scrollTo(0, 0);
+
+            // If we are navigating away from the song page, stop all its animations
+            if (pageId !== 'song') {
+                stopAllSongAnimations();
+            }
+
+            // Sync song page UI with audio state when navigating to it
+            if (pageId === 'song') {
+                updateSongPageUI();
+            }
+
+            // Initialize typewriter only when navigating to the home page
+            if (pageId === 'home') {
+                initTypewriter();
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const pageId = link.getAttribute('href').substring(1);
+                showPage(pageId);
+                navContainer.classList.remove('is-open');
+            });
+        });
+        
+        for (let i = 0; i < 30; i++) { const p = document.createElement('div'); p.classList.add('rose-petal-bg'); p.innerHTML = '●'; p.style.left = `${Math.random()*100}vw`; p.style.animationDuration=`${Math.random()*8+10}s`; p.style.animationDelay=`${Math.random()*10}s`; p.style.fontSize=`${Math.random()*0.5+0.5}rem`; petalContainer.appendChild(p); }
+        
+        const typewriterEl = document.getElementById('typewriter');
+        const textToType = "Four years. A thousand memories. A million moments of joy. Thank you for being the most wonderful part of my life. My love for you has only grown deeper... You are my everything.";
+        let typeIndex = 0;
+        let typewriterTimeout;
+        function typeWriter() { if (typeIndex < textToType.length) { typewriterEl.textContent += textToType.charAt(typeIndex); typeIndex++; typewriterTimeout = setTimeout(typeWriter, 55); } }
+        function initTypewriter() { clearTimeout(typewriterTimeout); typewriterEl.textContent = ''; typeIndex = 0; typeWriter(); }
+        
+        // NOTE: Dropbox links can be unstable for hosting. If images don't load, consider hosting them on GitHub or a dedicated image host.
+        const albumData = [ 
+            { id: 1, icon: '🌸', full: 'https://www.dropbox.com/scl/fi/fxl13nqo3ejlbr4roz7ho/Gemini_Generated_Image_mxwu28mxwu28mxwu.png?rlkey=44dwh08wh8mnyhbh3jthoeugk&st=b26akp6f&dl=1', caption: 'The day our adventure began.' }, 
+            { id: 2, icon: '🌷', full: 'https://www.dropbox.com/scl/fi/y9sf611efax8iyf5e0ke0/Gemini_Generated_Image_23q1wb23q1wb23q1.png?rlkey=a9fhluenl1q3lpfz73li1etht&st=dj64belz&dl=1', caption: 'Exploring the world with you.' }, 
+            { id: 3, icon: '🌻', full: 'https://www.dropbox.com/scl/fi/cnwmq2ili1ioecre45ic6/Gemini_Generated_Image_4ilcfl4ilcfl4ilc.png?rlkey=l0kaj7gfxvt4mqfi0x5c570wf&st=o73xlqq0&dl=1', caption: 'The silly moments I cherish.' }, 
+            { id: 4, icon: '🌺', full: 'https://www.dropbox.com/scl/fi/9e8a6dlwqwdylg5030kzn/Gemini_Generated_Image_8jlzxc8jlzxc8jlz.png?rlkey=830dhqfjdh62laoylad8cxen1&st=mk25japu&dl=1', caption: "That one dinner I'll never forget." },
+            { id: 5, icon: '🌼', full: 'https://www.dropbox.com/scl/fi/9q1kaqrgldp4zwwjwx6ih/Gemini_Generated_Image_am3ch1am3ch1am3c.png?rlkey=9t17gregldxy61162zfqshft3&st=mgf1jlss&dl=1', caption: 'Just being with you is my favorite thing.' },
+            { id: 6, icon: '💮', full: 'https://placehold.co/800x500/ec4899/fce7f3?text=First+Anniversary', caption: 'Celebrating one year of us.' },
+            { id: 7, icon: '🌹', full: 'https://placehold.co/800x500/ec4899/fce7f3?text=Holiday+Lights', caption: 'Everything is brighter with you.' },
+            { id: 8, icon: '💐', full: 'https://placehold.co/800x500/ec4899/fce7f3?text=Supporting+Dreams', caption: 'Always my number one supporter.' },
+            { id: 9, icon: '🪷', full: 'https://placehold.co/800x500/ec4899/fce7f3?text=Cooking+Together', caption: 'Making messes and memories.' },
+            { id: 10, icon: '🏵️', full: 'https://placehold.co/800x500/ec4899/fce7f3?text=Beach+Days', caption: 'Walking beside you is pure bliss.' },
+            { id: 11, icon: '🪻', full: 'https://placehold.co/800x500/ec4899/fce7f3?text=Through+It+All', caption: 'Knowing I always have you.' },
+            { id: 12, icon: '❤️', full: 'https://placehold.co/800x500/ec4899/fce7f3?text=To+Forever', caption: 'To our forever. Happy 4th Anniversary.' } 
+        ];
+        const mainPhoto = document.getElementById('main-photo'); const mainCaption = document.getElementById('main-photo-caption'); const thumbContainer = document.getElementById('thumbnail-container');
+        
+        function loadAlbum() { thumbContainer.innerHTML = albumData.map(i => `<div class="thumbnail rounded-full w-24 h-24 border-2 border-pink-400/30 cursor-pointer transition-all flex justify-center items-center bg-pink-900/50" data-full="${i.full}" data-caption="${i.caption}" data-id="${i.id}"><span class="text-4xl pointer-events-none">${i.icon}</span></div>`).join(''); updateMainPhoto(albumData[0], true); }
+        function updateMainPhoto(item, isInitialLoad = false) { if(!isInitialLoad) { triggerPhotoFlowerShower(); } mainPhoto.style.opacity = 0; setTimeout(() => { mainPhoto.src = item.full; mainCaption.textContent = item.caption; mainPhoto.style.opacity = 1; }, 300); document.querySelectorAll('.thumbnail').forEach(t=>t.classList.remove('active-photo')); document.querySelector(`.thumbnail[data-id='${item.id}']`)?.classList.add('active-photo'); }
+        thumbContainer.addEventListener('click', e => { const thumb = e.target.closest('.thumbnail'); if(thumb) { const item = albumData.find(i => i.id === parseInt(thumb.dataset.id)); if(item) updateMainPhoto(item); } });
+        function triggerPhotoFlowerShower() { const p = document.getElementById('main-photo-display'); const f=['🌹','🌸','🌷','🌻','🌺','🌼']; for(let i=0;i<40;i++){const d=document.createElement('div');d.classList.add('photo-shower-petal');d.innerHTML=f[Math.floor(Math.random()*f.length)];d.style.left=`${Math.random()*100}%`;d.style.animationDelay=`${Math.random()*0.5}s`;d.style.fontSize=`${Math.random()*1+1}rem`;p.appendChild(d);setTimeout(()=>d.remove(),3000);} }
+
+        const reasons = ["Your beautiful smile", "Your kind heart", "Your amazing laugh", "Our inside jokes", "Your strength", "How you feel like home", "Your adventurous spirit", "You're my best friend"];
+        const gameBox = document.getElementById('love-catcher-game'); const reasonModal = document.getElementById('reason-modal'); const reasonTextEl = document.getElementById('reason-text'); const closeModalBtn = document.getElementById('close-modal-btn');
+        function startGame() { gameBox.innerHTML = ''; reasons.forEach((r) => { const e=document.createElement('div'); e.classList.add('love-rose'); e.innerHTML='🌹'; e.style.left=`${Math.random()*90}%`; e.style.animationDuration=`${Math.random()*5+8}s`; e.style.animationDelay=`${Math.random()*8}s`; e.dataset.reason=r; e.addEventListener('click',catchRose); gameBox.appendChild(e); }); }
+        function catchRose(e) { reasonTextEl.textContent = e.target.dataset.reason; reasonModal.classList.remove('opacity-0', 'pointer-events-none'); e.target.style.display = 'none'; }
+        closeModalBtn.addEventListener('click', () => reasonModal.classList.add('opacity-0', 'pointer-events-none'));
+        
+        const quizData = [ { q: "Where was our first official date?", o: ["A Movie", "That Cozy Cafe", "A Park Picnic", "Fancy Dinner"], a: 1 }, { q: "My favorite silly thing you do?", o: ["Your dance moves", "Your funny faces", "Car singing", "All of the above!"], a: 3 }, { q: "Our love is...", o: ["Strong", "Forever", "An adventure", "All of the above"], a: 3 } ];
+        const quizContainer = document.getElementById('quiz-container'); const quizResults = document.getElementById('quiz-results'); const quizScoreEl = document.getElementById('quiz-score'); const restartQuizBtn = document.getElementById('restart-quiz-btn');
+        let currentQ = 0, score = 0;
+        function loadQuiz() { currentQ = 0; score = 0; quizContainer.style.display = 'block'; quizResults.style.display = 'none'; showQuestion(); }
+        function showQuestion() { const item = quizData[currentQ]; quizContainer.innerHTML = `<h3 class="text-2xl text-pink-200 mb-6">${item.q}</h3><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">${item.o.map((opt, i) => `<button class="quiz-option bg-pink-800/70 p-4 rounded-xl text-pink-200 hover:bg-pink-700 transition" data-idx="${i}">${opt}</button>`).join('')}</div>`; }
+        function showResults() { quizContainer.style.display = 'none'; quizResults.style.display = 'block'; quizScoreEl.textContent = `You scored ${score}/${quizData.length}! But you've always had my heart.`; }
+        quizContainer.addEventListener('click', e => { if (e.target.classList.contains('quiz-option')) { const selected = parseInt(e.target.dataset.idx); if(selected === quizData[currentQ].a) score++; currentQ++; if (currentQ < quizData.length) showQuestion(); else showResults(); } });
+        restartQuizBtn.addEventListener('click', loadQuiz);
+
+        const playBtn = document.getElementById('play-btn'), playIcon = document.getElementById('play-icon'), pauseIcon = document.getElementById('pause-icon'), albumArt = document.getElementById('album-art'), lyricsContainer = document.getElementById('lyrics-container'), notesContainer = document.getElementById('music-notes-container'), geminiContainer = document.getElementById('gemini-song-container'), geminiBtn = document.getElementById('gemini-song-btn'), analysisModal = document.getElementById('analysis-modal'), analysisContent = document.getElementById('analysis-content'), closeAnalysisModalBtn = document.getElementById('close-analysis-modal-btn');
+        const songLyrics = ["Diljaniya, ho Diljaniya", "Ek fariyaad sunle meri", "Aankhon mein tere, kho jaun main", "Baaton mein teri, so jaun main", "Teri hi yaadon mein basar ho", "Har pal, har lamha, mera", "Diljaniya, o ho Diljaniya", "Tu hi toh hai duniya meri"];
+        
+        function updateSongPageUI() {
+            if (audioPlayer.paused) { playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); albumArt.classList.remove('playing'); }
+            else { playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden'); albumArt.classList.add('playing'); }
+        }
+
+        playBtn.addEventListener('click', () => {
+            if (audioPlayer.paused) {
+                audioPlayer.play().then(() => {
+                    updateSongPageUI();
+                    startSongAnimations();
+                }).catch(error => console.error("Audio playback failed:", error));
+            } else {
+                audioPlayer.pause();
+                stopAllSongAnimations(); // Ensure animations stop when paused manually
+                updateSongPageUI();
+            }
+        });
+        audioPlayer.onpause = updateSongPageUI;
+        audioPlayer.onplay = updateSongPageUI;
+
+        function startSongAnimations() {
+            if (playBtn.dataset.animating === 'true') return;
+            playBtn.dataset.animating = 'true';
+            lyricsContainer.innerHTML = '';
+            
+            stopAllSongAnimations(); // Clear any previous animations before starting new ones
+            
+            noteInterval = setInterval(createMusicNote, 300);
+
+            songLyrics.forEach((line, index) => {
+                const timeoutId = setTimeout(() => {
+                    if (!audioPlayer.paused && document.getElementById('page-song').classList.contains('active')) {
+                        const p = document.createElement('p');
+                        p.textContent = line;
+                        lyricsContainer.innerHTML = ''; // Clear previous lyric
+                        lyricsContainer.appendChild(p);
+                        setTimeout(() => p.classList.add('visible'), 50);
+                    }
+                }, index * 4000); // Increased duration for better readability
+                lyricTimeouts.push(timeoutId);
+            });
+
+            const totalAnimationTime = songLyrics.length * 4000;
+            const finalTimeout = setTimeout(() => {
+                if (noteInterval) clearInterval(noteInterval);
+                geminiContainer.classList.remove('hidden');
+                playBtn.dataset.animating = 'false';
+            }, totalAnimationTime);
+            lyricTimeouts.push(finalTimeout);
+        }
+        
+        function createMusicNote() {
+            if (document.getElementById('page-song').classList.contains('active')) {
+                const note = document.createElement('div');
+                note.classList.add('music-note');
+                note.innerHTML = ['🎵', '🎶', '🎼', '❤️'][Math.floor(Math.random() * 4)];
+                note.style.left = `${Math.random() * 100}%`;
+                note.style.animationDuration = `${Math.random() * 2 + 3}s`;
+                notesContainer.appendChild(note);
+                setTimeout(() => note.remove(), 5000);
+            }
+        }
+        
+        geminiBtn.addEventListener('click', generateSongAnalysis);
+        closeAnalysisModalBtn.addEventListener('click', () => analysisModal.classList.add('opacity-0', 'pointer-events-none'));
+
+        async function generateSongAnalysis() {
+            analysisModal.classList.remove('opacity-0', 'pointer-events-none');
+            analysisContent.innerHTML = '<div class="flex justify-center items-center h-full"><div class="loader"></div></div>';
+            
+            // --- CRITICAL ERROR CORRECTION ---
+            // You must replace the placeholder text below with your actual Google AI API key.
+            // Get your key from Google AI Studio: https://aistudio.google.com/
+            const apiKey = "YOUR_GOOGLE_AI_API_KEY_HERE";
+
+            if (apiKey === "YOUR_GOOGLE_AI_API_KEY_HERE") {
+                 analysisContent.innerHTML = "This feature is not configured. Please add a valid Google AI API key to the script to enable the song analysis.";
+                 return;
+            }
+            
+            const songTitle = "Diljaniya by Jalraj";
+            const userQuery = `You are a romantic music expert. A couple, Rajat and Tanya, are celebrating their 4th anniversary, and their special song is "${songTitle}". Write a short, beautiful analysis (about 3-4 paragraphs) of why this song is a perfect anthem for a deep and lasting love like theirs. Explain how the lyrics reflect a journey of love, commitment, and finding one's soulmate. Make it personal to them and sign it with 'With love, from a musical muse'.`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+
+            const payload = { contents: [{ parts: [{ text: userQuery }] }] };
+            
+            try {
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`API error: ${response.status} ${response.statusText}`);
+                const result = await response.json();
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (text) {
+                    analysisContent.innerHTML = text.replace(/\n/g, '<br><br>');
+                } else {
+                    analysisContent.textContent = "I'm sorry, my muse seems to be sleeping. I couldn't write the analysis right now.";
+                }
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                analysisContent.textContent = "There was an error connecting to the magic of the song. The API key might be invalid or there could be a network issue. Please try again.";
+            }
+        }
+
+        // --- Initial Load ---
+        showPage('home');
+        loadAlbum();
+        startGame();
+        loadQuiz();
+    });
+    </script>
